@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mysql-allow-app
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "webapp-stack.labels" . | nindent 4 }}
+spec:
+  # Applies to every MySQL Pod (write and read)
+  podSelector:
+    matchLabels:
+      app: mysql
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # The application
+        - podSelector:
+            matchLabels:
+              app: webapp-api
+        # MySQL itself: the read replicas copy data from the write server
+        - podSelector:
+            matchLabels:
+              app: mysql
+      ports:
+        - protocol: TCP
+          port: 3306

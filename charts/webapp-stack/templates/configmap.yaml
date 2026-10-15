@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webapp-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "webapp-stack.labels" . | nindent 4 }}
+# Configuration for the webapp-api:task3 image
+data:
+  APP_TITLE: {{ .Values.app.config.title | quote }}
+  APP_ENV: {{ .Values.app.config.environment | quote }}
+  MYSQL_WRITE_HOST: mysql-write
+  MYSQL_READ_HOST: mysql-read
+  MYSQL_PORT: "3306"
+  MYSQL_DATABASE: {{ .Values.mysql.auth.database | quote }}

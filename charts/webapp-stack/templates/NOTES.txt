@@ -1,0 +1,18 @@
+WebApp stack "{{ .Release.Name }}" is installed in namespace "{{ .Release.Namespace }}".
+
+  App replicas:        {{ .Values.app.replicaCount }}  (image {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }})
+  MySQL write:         {{ .Values.mysql.write.replicaCount }}
+  MySQL read:          {{ .Values.mysql.read.replicaCount }}
+  Storage (PV / PVC):  {{ .Values.storage.pv.size }} / {{ .Values.storage.pvc.size }}
+
+Watch the Pods start:
+  kubectl get pods -n {{ .Release.Namespace }} -w
+
+Open the app:
+{{- if .Values.app.ingress.enabled }}
+  through the Ingress webapp-ingress (path {{ .Values.app.ingress.path }}), for example:
+  kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80
+{{- else }}
+  kubectl port-forward -n {{ .Release.Namespace }} svc/webapp-api 8080:{{ .Values.app.service.port }}
+{{- end }}
+  then browse to http://localhost:8080

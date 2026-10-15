@@ -1,0 +1,24 @@
+# Values for the "dev" environment.
+# Only what differs from charts/webapp-stack/values.yaml needs to be here,
+# but the settings you change most often are listed so they are easy to find.
+
+app:
+  replicaCount: 2
+  image:
+    tag: "task3"
+
+mysql:
+  write:
+    replicaCount: 1        # keep 1: only one server may own the write data folder
+    image:
+      tag: "task3"
+  read:
+    replicaCount: 2
+    image:
+      tag: "task3"
+
+storage:
+  pv:
+    size: 2Gi
+  pvc:
+    size: 2Gi

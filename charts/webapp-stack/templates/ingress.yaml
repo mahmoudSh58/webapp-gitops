@@ -1,0 +1,21 @@
+{{- if .Values.app.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webapp-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "webapp-stack.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.app.ingress.className }}
+  rules:
+    - http:
+        paths:
+          - path: {{ .Values.app.ingress.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: webapp-api
+                port:
+                  number: {{ .Values.app.service.port }}
+{{- end }}

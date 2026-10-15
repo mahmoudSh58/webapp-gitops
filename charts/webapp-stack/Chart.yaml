@@ -1,0 +1,6 @@
+apiVersion: v2
+name: webapp-stack
+description: FastAPI WebApp with MySQL write (source) and read (replica) servers
+type: application
+version: 0.1.0          # version of the chart
+appVersion: "task3"     # version of the application

@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-read
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: mysql
+    role: read
+    {{- include "webapp-stack.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.mysql.read.replicaCount }}
+  selector:
+    matchLabels:
+      app: mysql
+      role: read
+  template:
+    metadata:
+      labels:
+        app: mysql
+        role: read
+    spec:
+      containers:
+        - name: mysql
+          image: "{{ .Values.mysql.read.image.repository }}:{{ .Values.mysql.read.image.tag }}"
+          imagePullPolicy: {{ .Values.mysql.read.image.pullPolicy }}
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROLE
+              value: replica
+            - name: MYSQL_SOURCE_HOST
+              value: mysql-write        # Service of the write server
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: root-password
+            - name: MYSQL_REPL_USER
+              value: {{ .Values.mysql.auth.replicationUser | quote }}
+            - name: MYSQL_REPL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: replication-password
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+              subPathExpr: read/$(POD_NAME)   # one folder per replica on the PVC
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-read
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "webapp-stack.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: mysql
+    role: read
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306

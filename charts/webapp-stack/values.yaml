@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------
+# FastAPI application
+# ---------------------------------------------------------------
+app:
+  replicaCount: 2
+  image:
+    repository: webapp-api
+    tag: "task3"
+    pullPolicy: IfNotPresent
+  service:
+    port: 80             # Service port
+    targetPort: 8000     # uvicorn port inside the container
+  # Non-secret settings -> ConfigMap webapp-config
+  config:
+    title: "hello in MLOPS MENA COMMUNITY"
+    environment: dev
+  # Ingress webapp-ingress (needs the NGINX Ingress Controller from Session 2)
+  ingress:
+    enabled: true
+    className: nginx
+    path: /
+
+# ---------------------------------------------------------------
+# MySQL
+# ---------------------------------------------------------------
+mysql:
+  # Write server (replication source). Keep 1 replica: only one
+  # MySQL server can own the write data directory.
+  write:
+    replicaCount: 1
+    image:
+      repository: webapp-mysql
+      tag: "task3"
+      pullPolicy: IfNotPresent
+
+  # Read servers (replicas). Each Pod gets its own folder on the PVC.
+  read:
+    replicaCount: 2
+    image:
+      repository: webapp-mysql
+      tag: "task3"
+      pullPolicy: IfNotPresent
+
+  # Lab only: real projects keep passwords out of values files
+  auth:
+    rootPassword: rootpass123
+    database: webapp
+    user: webapp
+    password: webapp123
+    replicationUser: repl
+    replicationPassword: repl123
+
+# ---------------------------------------------------------------
+# Storage (hostPath PV pinned to one node)
+# ---------------------------------------------------------------
+storage:
+  storageClassName: manual
+  pv:
+    size: 2Gi
+    hostPath: /data/webapp-mysql
+    node: minikube-m02
+  pvc:
+    size: 2Gi
