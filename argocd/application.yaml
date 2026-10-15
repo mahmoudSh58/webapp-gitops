@@ -8,7 +8,7 @@ spec:
 
   # WHERE the desired state comes from
   source:
-    repoURL: https://github.com/<your-user>/webapp-gitops.git
+    repoURL: https://github.com/﻿mahmoudSh58/webapp-gitops.git
     targetRevision: main
     path: charts/webapp-stack
     helm:
