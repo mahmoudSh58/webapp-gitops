@@ -3,7 +3,7 @@
 # but the settings you change most often are listed so they are easy to find.
 
 app:
-  replicaCount: 3
+  replicaCount: 2
   image:
     tag: "task3"
 
